@@ -42,9 +42,13 @@ async def health_check():
     }
 
 
-# Import and include routers after app creation to avoid circular imports
-# from app.api import auth, webhooks, emails, actions, users
-# app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])
+# Import and include routers
+from app.api import auth
+
+app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])
+
+# Will be added as we build them:
+# from app.api import webhooks, emails, actions, users
 # app.include_router(webhooks.router, prefix="/api/webhooks", tags=["Webhooks"])
 # app.include_router(emails.router, prefix="/api/emails", tags=["Emails"])
 # app.include_router(actions.router, prefix="/api/actions", tags=["Actions"])
