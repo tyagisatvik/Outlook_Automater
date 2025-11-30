@@ -11,6 +11,7 @@ from app.prompts.summarization import (
     URGENCY_SCORE_PROMPT
 )
 from app.prompts.actions import ACTION_RECOMMENDATION_PROMPT
+from app.services.vector_store import vector_store
 
 
 class AIService:
@@ -24,7 +25,9 @@ class AIService:
         subject: str,
         sender: str,
         body: str,
-        received_at: datetime
+        received_at: datetime,
+        user_id: Optional[int] = None,
+        message_id: Optional[str] = None
     ) -> Tuple[str, List[Dict[str, Any]]]:
         """
         Process email with AI to generate summary and action recommendations
@@ -34,24 +37,68 @@ class AIService:
             sender: Sender email address
             body: Email body content
             received_at: When email was received
+            user_id: User ID (for context retrieval)
+            message_id: Message ID (for context retrieval)
 
         Returns:
             Tuple of (summary, suggested_actions)
         """
-        # Run summarization and actions in parallel
-        summary_task = self._generate_summary(subject, sender, body, received_at)
-        actions_task = self._generate_actions(subject, sender, body, received_at)
+        # Get contextual information from vector store
+        context = {}
+        if user_id and message_id:
+            context = await self._get_email_context(message_id, user_id, subject, body)
+
+        # Run summarization and actions in parallel with context
+        summary_task = self._generate_summary(subject, sender, body, received_at, context)
+        actions_task = self._generate_actions(subject, sender, body, received_at, context)
 
         summary, actions = await asyncio.gather(summary_task, actions_task)
 
         return summary, actions
+
+    async def _get_email_context(
+        self,
+        message_id: str,
+        user_id: int,
+        subject: str,
+        body: str
+    ) -> Dict[str, Any]:
+        """
+        Retrieve contextual information from vector store
+
+        Args:
+            message_id: Email message ID
+            user_id: User ID
+            subject: Email subject
+            body: Email body
+
+        Returns:
+            Context dictionary with similar emails and patterns
+        """
+        try:
+            # Search for similar emails
+            query_text = f"{subject}\n\n{body[:500]}"
+            similar_emails = vector_store.search_similar_emails(
+                query_text=query_text,
+                user_id=user_id,
+                n_results=3
+            )
+
+            return {
+                "similar_emails": similar_emails,
+                "has_context": len(similar_emails) > 0
+            }
+        except Exception as e:
+            print(f"Error retrieving email context: {e}")
+            return {"similar_emails": [], "has_context": False}
 
     async def _generate_summary(
         self,
         subject: str,
         sender: str,
         body: str,
-        received_at: datetime
+        received_at: datetime,
+        context: Optional[Dict[str, Any]] = None
     ) -> str:
         """
         Generate email summary using Gemini Flash (cheap, fast)
@@ -102,7 +149,8 @@ class AIService:
         subject: str,
         sender: str,
         body: str,
-        received_at: datetime
+        received_at: datetime,
+        context: Optional[Dict[str, Any]] = None
     ) -> List[Dict[str, Any]]:
         """
         Generate action recommendations using GPT-4 (better reasoning)
