@@ -1,11 +1,37 @@
-langchain
-langchain-google-genai
-google-generativeai
-python-dotenv
-requests
-# Use modern MSAL and PyJWT to avoid legacy crypto extras and ensure wheel availability
+# Web Framework
+fastapi==0.109.0
+uvicorn[standard]==0.27.0
+python-multipart==0.0.6
+
+# Background Tasks
+celery==5.3.6
+redis==5.0.1
+
+# Database
+sqlalchemy==2.0.25
+alembic==1.13.1
+psycopg2-binary==2.9.9
+asyncpg==0.29.0
+
+# Microsoft Graph & Auth
 msal==1.28.0
 PyJWT==2.8.0
-google-generativeai>=0.8.0
-langchain>=0.2.16
-langchain-google-genai>=1.0.9
+cryptography==42.0.0
+
+# AI/ML
+langchain==0.2.16
+langchain-google-genai==1.0.9
+langchain-openai==0.1.1
+langchain-anthropic==0.1.1
+google-generativeai==0.8.0
+openai==1.12.0
+anthropic==0.18.1
+
+# Utilities
+python-dotenv==1.0.0
+requests==2.31.0
+pydantic==2.6.0
+pydantic-settings==2.1.0
+
+# Monitoring & Logging
+prometheus-client==0.19.0
