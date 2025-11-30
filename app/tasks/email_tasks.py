@@ -8,6 +8,7 @@ from app.db.database import async_session_factory
 from app.services.graph_client import GraphClient
 from app.services.oauth_service import OAuthService
 from app.services.cache_service import CacheService
+from app.services.vector_store import vector_store
 
 
 @celery_app.task(bind=True, max_retries=3)
@@ -155,6 +156,21 @@ async def _process_email_async(subscription_id: str, message_id: str, change_typ
 
         db.add(email)
         await db.commit()
+
+        # Add email to vector store for semantic search
+        sender_email = sender.get("emailAddress", {}).get("address", "") if sender else ""
+        vector_store.add_email(
+            email_id=message_id,
+            subject=subject,
+            body=body_text or body_html,
+            sender=sender_email,
+            user_id=user.id,
+            metadata={
+                "conversation_id": conversation_id,
+                "received_at": received_at.isoformat(),
+                "importance": importance,
+            }
+        )
 
         print(f"Successfully processed email {message_id} for user {user.id}")
 
