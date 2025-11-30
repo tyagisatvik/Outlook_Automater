@@ -23,6 +23,11 @@ class Settings(BaseSettings):
     # Redis
     REDIS_URL: str = Field(default="redis://localhost:6379/0")
 
+    # ChromaDB Vector Store
+    CHROMADB_HOST: str = Field(default="localhost")
+    CHROMADB_PORT: int = Field(default=8001)
+    EMBEDDING_MODEL: str = Field(default="all-MiniLM-L6-v2")
+
     # Microsoft Graph API
     MICROSOFT_CLIENT_ID: str = Field(...)
     MICROSOFT_CLIENT_SECRET: Optional[str] = Field(default=None)

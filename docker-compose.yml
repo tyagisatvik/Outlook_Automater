@@ -82,6 +82,18 @@ services:
       redis:
         condition: service_healthy
 
+  chromadb:
+    image: chromadb/chroma:latest
+    container_name: email_intel_chromadb
+    ports:
+      - "8001:8000"
+    volumes:
+      - chroma_data:/chroma/chroma
+    environment:
+      - IS_PERSISTENT=TRUE
+      - ANONYMIZED_TELEMETRY=FALSE
+
 volumes:
   postgres_data:
   redis_data:
+  chroma_data:
